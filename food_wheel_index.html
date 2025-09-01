@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍜 What to Eat?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="location-status" id="locationStatus">📍 Getting location...</div>
+    
+    <div class="header">
+        <h1>🍜 What to Eat?</h1>
+        <p>Spin the wheel and discover nearby restaurants!</p>
+    </div>
+
+    <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheelCanvas" width="350" height="350"></canvas>
+    </div>
+
+    <button class="spin-button" id="spinButton">🎯 SPIN THE WHEEL!</button>
+
+    <div class="result-section" id="resultSection">
+        <div class="food-emoji" id="foodEmoji">🍕</div>
+        <div class="food-name" id="foodName">Pizza</div>
+        <div class="restaurants" id="restaurants">
+            <div class="loading-restaurants">
+                <div class="spinner"></div>
+                <span>Finding nearby restaurants...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="spinner.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
