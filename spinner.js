@@ -103,12 +103,35 @@ class WheelSpinner {
                 this.currentRotation = finalAngle % (2 * Math.PI);
                 this.drawWheel();
                 
-                // Determine winning segment (fixed calculation for top pointer)
-                const pointerAngle = Math.PI / 2; // Pointer at top (90 degrees)
-                const adjustedAngle = (pointerAngle - this.currentRotation) % (2 * Math.PI);
-                const normalizedAngle = adjustedAngle < 0 ? adjustedAngle + (2 * Math.PI) : adjustedAngle;
-                const segmentIndex = Math.floor(normalizedAngle / ((2 * Math.PI) / this.foodOptions.length));
+                // FIXED: Correct calculation for top pointer
+                const numSegments = this.foodOptions.length;
+                const anglePerSegment = (2 * Math.PI) / numSegments;
+                
+                // The pointer points up (270 degrees or 3π/2), but we need to account for rotation
+                const pointerAngle = (3 * Math.PI / 2) - this.currentRotation;
+                let normalizedAngle = pointerAngle % (2 * Math.PI);
+                if (normalizedAngle < 0) {
+                    normalizedAngle += 2 * Math.PI;
+                }
+                
+                // Calculate which segment the pointer is pointing to
+                let segmentIndex = Math.floor(normalizedAngle / anglePerSegment);
+                
+                // Ensure valid index
+                if (segmentIndex >= numSegments) {
+                    segmentIndex = 0;
+                }
+                
                 const winningFood = this.foodOptions[segmentIndex];
+                
+                // Debug logging
+                console.log('🎯 Spin Results:', {
+                    finalRotation: this.currentRotation,
+                    pointerAngle: pointerAngle,
+                    normalizedAngle: normalizedAngle,
+                    segmentIndex: segmentIndex,
+                    winner: winningFood.name
+                });
                 
                 resolve(winningFood);
             }, duration);
