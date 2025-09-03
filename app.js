@@ -245,13 +245,99 @@ class FoodWheelApp {
     }
 
     showError(message) {
+        console.log('⚠️ Showing error:', message);
         const restaurantsContainer = document.getElementById('restaurants');
+        
+        if (!restaurantsContainer) {
+            console.error('❌ Cannot find restaurants container element!');
+            return;
+        }
+        
         restaurantsContainer.innerHTML = `
             <div class="error-message">
                 <div>⚠️ ${message}</div>
-                <div style="font-size: 0.9rem; margin-top: 0.5rem;">Please try again or check your internet connection.</div>
+                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    This might be due to:
+                    <ul style="text-align: left; margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>Limited restaurant data in your area</li>
+                        <li>Internet connectivity issues</li>
+                        <li>API temporary unavailability</li>
+                    </ul>
+                </div>
+                <button onclick="window.foodApp.searchAllRestaurants()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: none; border-radius: 10px; color: white; cursor: pointer;">
+                    🏪 Try Finding All Restaurants
+                </button>
+                <button onclick="window.foodApp.testConnection()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: none; border-radius: 10px; color: white; cursor: pointer;">
+                    🔧 Test API Connection
+                </button>
             </div>
         `;
+    }
+
+    // NEW: Test if the API is working at all
+    async testConnection() {
+        console.log('🔧 Testing API connection...');
+        const restaurantsContainer = document.getElementById('restaurants');
+        
+        restaurantsContainer.innerHTML = `
+            <div class="loading-restaurants">
+                <div class="spinner"></div>
+                <span>Testing API connection...</span>
+            </div>
+        `;
+        
+        try {
+            // Simple test query - just get one restaurant anywhere in KL
+            const testQuery = `
+            [out:json][timeout:10];
+            (
+              node["amenity"="restaurant"](around:50000,3.139,101.687);
+            );
+            out body 1;
+            `;
+            
+            const response = await fetch('https://overpass-api.de/api/interpreter', {
+                method: 'POST',
+                body: testQuery,
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API test failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.elements && data.elements.length > 0) {
+                restaurantsContainer.innerHTML = `
+                    <div style="background: rgba(0,255,0,0.2); border: 1px solid rgba(0,255,0,0.3); border-radius: 10px; padding: 1rem; text-align: center;">
+                        ✅ API Connection Working!<br>
+                        <small>Found test restaurant: ${data.elements[0].tags?.name || 'Unnamed restaurant'}</small><br>
+                        <small>Your location: ${this.userLocation?.lat?.toFixed(3)}, ${this.userLocation?.lng?.toFixed(3)}</small><br>
+                        <small>Search radius: ${this.searchRadius}m</small>
+                    </div>
+                `;
+                console.log('✅ API test successful:', data);
+            } else {
+                restaurantsContainer.innerHTML = `
+                    <div class="error-message">
+                        ⚠️ API works but no restaurants found in test area<br>
+                        <small>You might be in a very rural location</small>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('❌ API test failed:', error);
+            restaurantsContainer.innerHTML = `
+                <div class="error-message">
+                    ❌ API Connection Failed<br>
+                    <small>Error: ${error.message}</small><br>
+                    <small>Check your internet connection</small>
+                </div>
+            `;
+        }
     }
 }
 
