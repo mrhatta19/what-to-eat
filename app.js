@@ -383,5 +383,24 @@ document.addEventListener('DOMContentLoaded', () => {
         window.foodApp.spinWheel();
     };
     document.body.appendChild(testButton);
-    console.log('🔧 Added test button to page');
+    
+    // Add second test button to test restaurant search directly
+    const testSearchButton = document.createElement('button');
+    testSearchButton.textContent = '🧪 Test Search';
+    testSearchButton.style.position = 'fixed';
+    testSearchButton.style.top = '60px';
+    testSearchButton.style.left = '10px';
+    testSearchButton.style.zIndex = '1000';
+    testSearchButton.style.padding = '10px';
+    testSearchButton.style.background = 'blue';
+    testSearchButton.style.color = 'white';
+    testSearchButton.style.border = 'none';
+    testSearchButton.style.borderRadius = '5px';
+    testSearchButton.onclick = () => {
+        console.log('🧪 TEST SEARCH BUTTON CLICKED!');
+        window.foodApp.testRestaurantSearch();
+    };
+    document.body.appendChild(testSearchButton);
+    
+    console.log('🔧 Added test buttons to page');
 });
