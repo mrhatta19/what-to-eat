@@ -343,5 +343,45 @@ class FoodWheelApp {
 
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM Content Loaded!');
+    
+    // Check if elements exist
+    const canvas = document.getElementById('wheelCanvas');
+    const spinButton = document.getElementById('spinButton');
+    const resultSection = document.getElementById('resultSection');
+    const locationStatus = document.getElementById('locationStatus');
+    
+    console.log('🔍 Pre-init element check:');
+    console.log('  - wheelCanvas:', canvas ? '✅ Found' : '❌ Missing');
+    console.log('  - spinButton:', spinButton ? '✅ Found' : '❌ Missing'); 
+    console.log('  - resultSection:', resultSection ? '✅ Found' : '❌ Missing');
+    console.log('  - locationStatus:', locationStatus ? '✅ Found' : '❌ Missing');
+    
+    if (!canvas || !spinButton || !resultSection || !locationStatus) {
+        console.error('❌ Missing required HTML elements! Check your HTML structure.');
+        return;
+    }
+    
+    console.log('🎯 Creating FoodWheelApp instance...');
     window.foodApp = new FoodWheelApp(); // Make it globally accessible
+    console.log('✅ App created successfully!');
+    
+    // Add a test button for debugging
+    const testButton = document.createElement('button');
+    testButton.textContent = '🔧 Test Spin';
+    testButton.style.position = 'fixed';
+    testButton.style.top = '10px';
+    testButton.style.left = '10px';
+    testButton.style.zIndex = '1000';
+    testButton.style.padding = '10px';
+    testButton.style.background = 'red';
+    testButton.style.color = 'white';
+    testButton.style.border = 'none';
+    testButton.style.borderRadius = '5px';
+    testButton.onclick = () => {
+        console.log('🔧 TEST BUTTON CLICKED!');
+        window.foodApp.spinWheel();
+    };
+    document.body.appendChild(testButton);
+    console.log('🔧 Added test button to page');
 });
