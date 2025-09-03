@@ -123,9 +123,6 @@ class FoodWheelApp {
             return;
         }
 
-        // Store last search for retry functionality
-        this.lastSearchFood = food;
-
         try {
             const restaurants = await this.queryOverpassAPI(food.query, this.userLocation.lat, this.userLocation.lng);
             this.displayRestaurants(restaurants);
@@ -136,60 +133,52 @@ class FoodWheelApp {
     }
 
     async queryOverpassAPI(query, lat, lng) {
-        // More robust query with better error handling
         const overpassQuery = `
-        [out:json][timeout:30];
+        [out:json][timeout:25];
         (
           node["amenity"="restaurant"]["cuisine"~"${query}",i](around:${this.searchRadius},${lat},${lng});
           node["amenity"="fast_food"]["cuisine"~"${query}",i](around:${this.searchRadius},${lat},${lng});
           node["amenity"="cafe"]["name"~"${query}",i](around:${this.searchRadius},${lat},${lng});
+          node["shop"="bakery"](around:${this.searchRadius},${lat},${lng});
           node["amenity"="restaurant"]["name"~"${query}",i](around:${this.searchRadius},${lat},${lng});
           node["amenity"="fast_food"]["name"~"${query}",i](around:${this.searchRadius},${lat},${lng});
         );
         out body;
         `;
 
-        console.log('🔍 Searching for:', query, 'near', lat, lng);
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: overpassQuery,
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+        });
 
-        try {
-            const response = await fetch('https://overpass-api.de/api/interpreter', {
-                method: 'POST',
-                body: overpassQuery,
-                headers: {
-                    'Content-Type': 'text/plain',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`API responded with status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('📍 API Response:', data.elements?.length || 0, 'places found');
-            
-            // Process and sort restaurants by distance
-            const restaurants = data.elements
-                .filter(element => element.tags && element.tags.name)
-                .map(element => ({
-                    name: element.tags.name,
-                    lat: element.lat,
-                    lon: element.lon,
-                    cuisine: element.tags.cuisine || 'Restaurant',
-                    amenity: element.tags.amenity || 'restaurant',
-                    distance: this.calculateDistance(lat, lng, element.lat, element.lon),
-                    address: element.tags['addr:street'] || element.tags['addr:city'] || '',
-                    phone: element.tags.phone || '',
-                    website: element.tags.website || '',
-                    opening_hours: element.tags.opening_hours || ''
-                }))
-                .sort((a, b) => a.distance - b.distance)
-                .slice(0, 8); // Limit to 8 results
-
-            return restaurants;
-        } catch (error) {
-            console.error('❌ Overpass API Error:', error);
-            throw error;
+        if (!response.ok) {
+            throw new Error('Failed to fetch data from Overpass API');
         }
+
+        const data = await response.json();
+        
+        // Process and sort restaurants by distance
+        const restaurants = data.elements
+            .filter(element => element.tags && element.tags.name)
+            .map(element => ({
+                name: element.tags.name,
+                lat: element.lat,
+                lon: element.lon,
+                cuisine: element.tags.cuisine || 'Restaurant',
+                amenity: element.tags.amenity || 'restaurant',
+                distance: this.calculateDistance(lat, lng, element.lat, element.lon),
+                address: element.tags['addr:street'] || element.tags['addr:city'] || '',
+                phone: element.tags.phone || '',
+                website: element.tags.website || '',
+                opening_hours: element.tags.opening_hours || ''
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 8); // Limit to 8 results
+
+        return restaurants;
     }
 
     calculateDistance(lat1, lng1, lat2, lng2) {
@@ -212,14 +201,11 @@ class FoodWheelApp {
     displayRestaurants(restaurants) {
         const restaurantsContainer = document.getElementById('restaurants');
         
-        if (!restaurants || restaurants.length === 0) {
+        if (restaurants.length === 0) {
             restaurantsContainer.innerHTML = `
                 <div class="error-message">
                     <div>😔 No restaurants found nearby</div>
-                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">Try spinning for another food type or increase your radius!</div>
-                    <button onclick="window.foodApp.increaseRadius()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: none; border-radius: 10px; color: white; cursor: pointer;">
-                        🔍 Search Wider Area
-                    </button>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">Try spinning for another food type!</div>
                 </div>
             `;
             return;
@@ -227,14 +213,13 @@ class FoodWheelApp {
 
         restaurantsContainer.innerHTML = '';
         
-        restaurants.forEach((restaurant, index) => {
+        restaurants.forEach(restaurant => {
             const distanceText = restaurant.distance < 1 
                 ? `${Math.round(restaurant.distance * 1000)}m` 
                 : `${restaurant.distance.toFixed(1)}km`;
             
             const restaurantCard = document.createElement('div');
             restaurantCard.className = 'restaurant-card';
-            restaurantCard.style.animationDelay = `${index * 0.1}s`; // Stagger animation
             
             // Create Google Maps URL
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' ' + restaurant.address)}&center=${restaurant.lat},${restaurant.lon}`;
@@ -257,19 +242,6 @@ class FoodWheelApp {
             `;
             restaurantsContainer.appendChild(restaurantCard);
         });
-
-        console.log('✅ Displayed', restaurants.length, 'restaurants');
-    }
-
-    // Add method to increase search radius when no results found
-    increaseRadius() {
-        this.searchRadius = Math.min(this.searchRadius * 2, 10000); // Max 10km
-        console.log('🔍 Increased search radius to:', this.searchRadius, 'meters');
-        
-        // Re-run the last search with bigger radius
-        if (this.lastSearchFood) {
-            this.fetchNearbyRestaurants(this.lastSearchFood);
-        }
     }
 
     showError(message) {
