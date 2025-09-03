@@ -16,6 +16,9 @@ class WheelSpinner {
             { name: 'Steak', emoji: '🥩', color: '#ff6348', query: 'steak' },
             { name: 'Ice Cream', emoji: '🍦', color: '#ffb8b8', query: 'ice cream' },
             { name: 'Sandwich', emoji: '🥪', color: '#c44569', query: 'sandwich' },
+            { name: 'Rice', emoji: '🍚', color: '#f39c12', query: 'rice' },
+            { name: 'Noodle', emoji: '🍲', color: '#e74c3c', query: 'noodle' },
+            { name: 'Porridge', emoji: '🥣', color: '#9b59b6', query: 'porridge' },
             { name: 'Bakery', emoji: '🥖', color: '#fd79a8', query: 'bakery' }
         ];
     }
